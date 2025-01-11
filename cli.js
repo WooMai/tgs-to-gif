@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ArgumentParser } from 'argparse';
-import { toGifFromFile } from './index.js';
+import { toGifFromFile, toPngFromFile } from './index.js';
 import { createBrowser } from './utils.js';
 
 const convertFiles = async function (filePaths, browser, options) {
@@ -9,7 +9,11 @@ const convertFiles = async function (filePaths, browser, options) {
     console.log(`Converting ${filePath}...`);
 
     try {
-      await toGifFromFile(filePath, `${filePath}.gif`, options);
+      if(options.isPng) {
+        await toPngFromFile(filePath, `${filePath}.png`, options);
+      } else {
+        await toGifFromFile(filePath, `${filePath}.gif`, options);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -20,6 +24,7 @@ const main = async function () {
   const parser = new ArgumentParser({
     description: 'Animated stickers for Telegram (*.tgs) to animated GIFs converter',
   });
+  parser.add_argument('--png', {help: 'Output as PNG instead of GIF for single frame stickers or save all frames as png', action: 'store_true'});
   parser.add_argument('--height', {help: 'Output image height. Default: auto', type: Number});
   parser.add_argument('--width', {help: 'Output image width. Default: auto', type: Number});
   parser.add_argument('--fps', {help: 'Output frame rate. Default: auto', type: Number});
@@ -41,7 +46,7 @@ const main = async function () {
   }
 
   const browser = await createBrowser();
-  await convertFiles(paths, browser, { width: args.width, height: args.height, fps: args.fps });
+  await convertFiles(paths, browser, { isPng: args.png, width: args.width, height: args.height, fps: args.fps });
   await browser.close();
 };
 

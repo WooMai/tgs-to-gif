@@ -4,6 +4,7 @@ import zlib from 'zlib';
 import os from 'os';
 import render from './render.js';
 import { createBrowser, removeDirectory, saveScreenshots, streamToString } from './utils.js';
+import path from 'path';
 
 const isWindows = ['win32', 'win64'].includes(os.platform());
 
@@ -58,6 +59,8 @@ export const toGif = fromStream(async function (animationData, outputPath, optio
   options.fps = options.fps || Math.min(animationData.fr, 50); // most viewers do not support gifs with FPS > 50
 
   const { dir, files, pattern } = await saveScreenshots(await render(options.browser, animationData, options));
+  // console.log({ dir, files, pattern });
+  // exit(0);
 
   try {
     await execa(
@@ -77,7 +80,31 @@ export const toGif = fromStream(async function (animationData, outputPath, optio
     await removeDirectory(dir);
   }
 });
+
+export const toPng = fromStream(async function (tgsData, outputPath, options = {}) {
+  options.quality = options.quality || 80;
+  options.fps = options.fps || Math.min(tgsData.fr, 50); // most viewers do not support gifs with FPS > 50
+
+  const { dir, files, pattern } = await saveScreenshots(await render(options.browser, tgsData, options));
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const imagePath = outputPath.replace('.png', `-${i}.png`);
+      console.log(`Saving: ${imagePath}`);
+      const file = files[i];
+      // const destination = outputPath;
+      fs.copyFileSync(file, imagePath);
+      fs.unlinkSync(file);
+    }
+  } catch (e) {
+    throw e;
+  } finally {
+    await removeDirectory(dir);
+  }
+});
+
 export const toGifFromFile = fromFile(toGif);
+export const toPngFromFile = fromFile(toPng);
 
 // for capability with previous version
 export const convertFile = async function (inputPath, options = {}) {

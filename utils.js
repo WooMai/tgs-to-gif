@@ -80,7 +80,7 @@ export const pad = function (num, size) {
 };
 
 export const removeDirectory = function (directoryPath) {
-    return new Promise((resolve, reject) => fs.rmdir(directoryPath, { recursive: true }, function (err, data) {
+    return new Promise((resolve, reject) => fs.rm(directoryPath, { recursive: true }, function (err, data) {
         if (err) {
             reject(err);
         } else {
